@@ -3,6 +3,7 @@ package com.example.moagong.domain.recruitment.service;
 import com.example.moagong.domain.contest.entity.Contest;
 import com.example.moagong.domain.contest.repository.ContestRepository;
 import com.example.moagong.domain.recruitment.dto.request.ApplyRequestDto;
+import com.example.moagong.domain.recruitment.dto.request.ApplyStateRequestDto;
 import com.example.moagong.domain.recruitment.dto.request.RecruitmentRequestDto;
 import com.example.moagong.domain.recruitment.dto.response.ApplyUserResponseDto;
 import com.example.moagong.domain.recruitment.dto.response.ContestRecruitmentResponseDto;
@@ -143,33 +144,57 @@ public class RecruitmentService {
         recruitmentApplyRepository.save(apply);
     }
 
-    //참가 신청 수락하기ㄱ
+//    //참가 신청 수락하기ㄱ
+//    @Transactional
+//    public void acceptMember(String master_id, String apply_user, Long recruitment_id) {
+//        decideApply(master_id, apply_user, recruitment_id, ACCEPT);
+//    }
+//
+//    //참가 거절하기
+//    @Transactional
+//    public void refuseMember(String master_id, String apply_user, Long recruitment_id){
+//        decideApply(master_id, apply_user, recruitment_id, REFUSE);
+//    }
+//
+//    // 상태 값 바꿔주기
+//    private void decideApply(String master_id, String apply_user, Long recruitment_id, applyState newState){
+//        //1. 권한 검증 -> 방장이 맞는지
+//        RecruitmentApply apply = recruitmentApplyRepository.findByRecruitmentIdAndApplyUserId(recruitment_id, apply_user).orElseThrow(() -> new CustomException(NO_PERMMISSION));
+//        //2. 대상 검증 -> 신청자가 맞는지, 존재하는지
+//        if(!apply.getMaster().getId().equals(master_id)) throw new CustomException(NO_PERMMISSION);
+//        //수락하는 경우 인원수를 넘으면 수락 불가능
+//        if(newState.equals(ACCEPT) &&
+//                recruitmentApplyRepository.countByRecruitmentIdAndState(recruitment_id, ACCEPT)==apply.getRecruitment().getCount()) throw new CustomException(ALREADY_MEMBER);
+//
+//        //3. 상태 전이 검증
+//        if(recruitmentApplyRepository.updateStateIfMatch(apply.getApply_id(), apply.getState(), newState)==0){
+//            throw new CustomException(APPLY_ALREADY_PROCESSED);
+//        }
+//    }
+
+    /*유저 아이디가 아닌 apply_id 값으로 해결하는 것이 좋음
+    * 악의적으로 다른 유저의 id를 전달하여 상태 변환하는 것을 방지 */
     @Transactional
-    public void acceptMember(String master_id, String apply_user, Long recruitment_id) {
-        decideApply(master_id, apply_user, recruitment_id, ACCEPT);
-    }
+    public void decideApply(ApplyStateRequestDto dto, String user_id, Long apply_id, Long recruitment_id) {
+        //1. 대상 검증 -> 신청자가 맞는지, 존재하는 모집공고 인지
+        RecruitmentApply recruitmentApply = recruitmentApplyRepository.findByRecruitmentIdAndApplyId(recruitment_id, apply_id)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_RECRUIT));
 
-    //참가 거절하기
-    @Transactional
-    public void refuseMember(String master_id, String apply_user, Long recruitment_id){
-        decideApply(master_id, apply_user, recruitment_id, REFUSE);
-    }
-
-    // 상태 값 바꿔주기
-    private void decideApply(String master_id, String apply_user, Long recruitment_id, applyState newState){
-        //1. 권한 검증 -> 방장이 맞는지
-        RecruitmentApply apply = recruitmentApplyRepository.findByRecruitmentIdAndApplyUserId(recruitment_id, apply_user).orElseThrow(() -> new CustomException(NO_PERMMISSION));
-        //2. 대상 검증 -> 신청자가 맞는지, 존재하는지
-        if(!apply.getMaster().getId().equals(master_id)) throw new CustomException(NO_PERMMISSION);
-        //수락하는 경우 인원수를 넘으면 수락 불가능
-        if(newState.equals(ACCEPT) &&
-                recruitmentApplyRepository.countByRecruitmentIdAndState(recruitment_id, ACCEPT)==apply.getRecruitment().getCount()) throw new CustomException(ALREADY_MEMBER);
-
-        //3. 상태 전이 검증
-        if(recruitmentApplyRepository.updateStateIfMatch(apply.getApply_id(), apply.getState(), newState)==0){
+        //2. 권한 검사 -> 방장이 맞는지
+        if(!recruitmentApply.getMaster().getId().equals(user_id))
+            throw new CustomException(NO_PERMMISSION);
+        //3. 수락하는 경우 인원 수 넘으면 수락 불가능
+        if(dto.getState().equals(ACCEPT) &&
+                recruitmentApplyRepository.countByRecruitmentIdAndState(recruitment_id, ACCEPT)
+                        ==recruitmentApply.getRecruitment().getCount()) {
+            throw new CustomException(ALREADY_MEMBER);
+        }
+        //4. 상태 전이 검증
+        if(recruitmentApplyRepository.updateStateIfMatch(recruitmentApply.getApply_id(), recruitmentApply.getState(), dto.getState()) == 0){
             throw new CustomException(APPLY_ALREADY_PROCESSED);
         }
     }
+
 
     //팀 확정하기
     @Transactional

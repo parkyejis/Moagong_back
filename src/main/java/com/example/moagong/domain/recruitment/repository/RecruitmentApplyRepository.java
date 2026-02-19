@@ -18,6 +18,9 @@ public interface RecruitmentApplyRepository extends JpaRepository <RecruitmentAp
     boolean existsByRecruitmentIdAndMasterId(Long recruitment_id, String master_id);
     Optional<RecruitmentApply> findByMasterId(String master_id);
 
+    @Query("select r from RecruitmentApply r where r.recruitment.id = :recruitmentId and r.apply_id = :applyId")
+    Optional<RecruitmentApply> findByRecruitmentIdAndApplyId(@Param("recruitmentId")Long recruitment_id, @Param("applyId")Long apply_id);
+
     @Query("select r from RecruitmentApply r where r.recruitment.id = :recruitmentId and r.apply_user.id = :apply_userId")
     Optional<RecruitmentApply> findByRecruitmentIdAndApplyUserId(@Param("recruitmentId") Long recruitment_id, @Param("apply_userId") String apply_user);
 

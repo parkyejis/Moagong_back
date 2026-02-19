@@ -1,6 +1,7 @@
 package com.example.moagong.domain.controller;
 
 import com.example.moagong.domain.recruitment.dto.request.ApplyRequestDto;
+import com.example.moagong.domain.recruitment.dto.request.ApplyStateRequestDto;
 import com.example.moagong.domain.recruitment.service.RecruitmentService;
 import com.example.moagong.global.response.BaseResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +23,25 @@ public class RecruitApplyController {
         return ResponseEntity.status(200).body(BaseResponse.success(null));
     }
 
-    //지원 신청 수락하기
-    @PatchMapping("/{recruitment-id}/change/{apply-user}/accept")
-    public ResponseEntity<BaseResponse<Void>> acceptMember(@AuthenticationPrincipal String user_id ,@PathVariable(value="recruitment-id")Long recruitment_id, @PathVariable(value = "apply-user")String apply_user) {
-        recruitmentService.acceptMember(user_id, apply_user, recruitment_id);
-        return ResponseEntity.status(200).body(BaseResponse.success(null));
-    }
+//    //지원 신청 수락하기
+//    @PatchMapping("/{recruitment-id}/change/{apply-user}/accept")
+//    public ResponseEntity<BaseResponse<Void>> acceptMember(@AuthenticationPrincipal String user_id ,@PathVariable(value="recruitment-id")Long recruitment_id, @PathVariable(value = "apply-user")String apply_user) {
+//        recruitmentService.acceptMember(user_id, apply_user, recruitment_id);
+//        return ResponseEntity.status(200).body(BaseResponse.success(null));
+//    }
+//
+//    //지원 신청 거절하기
+//    @PatchMapping("/{recruitment-id}/change/{apply-user}/refuse")
+//    public ResponseEntity<BaseResponse<Void>> refuseMember(@AuthenticationPrincipal String user_id ,@PathVariable(value="recruitment-id")Long recruitment_id, @PathVariable(value = "apply-user")String apply_user) {
+//        recruitmentService.refuseMember(user_id, apply_user, recruitment_id);
+//        return ResponseEntity.status(200).body(BaseResponse.success(null));
+//    }
 
-    //지원 신청 거절하기
-    @PatchMapping("/{recruitment-id}/change/{apply-user}/refuse")
-    public ResponseEntity<BaseResponse<Void>> refuseMember(@AuthenticationPrincipal String user_id ,@PathVariable(value="recruitment-id")Long recruitment_id, @PathVariable(value = "apply-user")String apply_user) {
-        recruitmentService.refuseMember(user_id, apply_user, recruitment_id);
-        return ResponseEntity.status(200).body(BaseResponse.success(null));
+    //지원 수락/거절 api
+    @PatchMapping("/{recruitment-id}/change/{apply-id}")
+    public void decideMember(@RequestBody ApplyStateRequestDto dto, @AuthenticationPrincipal String user_id, @PathVariable(value = "recruitment-id")Long recruitment_id, @PathVariable(value = "apply-id")Long apply_id){
+        recruitmentService.decideApply(dto, user_id, apply_id, recruitment_id);
+
     }
 
     //팀 확정하기
