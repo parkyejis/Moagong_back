@@ -20,7 +20,7 @@ public class UserRequestDto {
 
     @NotBlank
     private final String user_id;
-
+p
     @NotBlank
     private final String password;
 

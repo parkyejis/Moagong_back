@@ -26,9 +26,9 @@ public class RecruitmentController {
 
     //생성하기 -> 만드는 사람도 참가자이기 때문에 참가자 명단에 추가해주어야함
     @PostMapping("/create/{contest-id}")
-    public ResponseEntity<BaseResponse<?>> createRecruitment (@PathVariable(value = "contest-id")Long contest_id, @AuthenticationPrincipal String user_id, @RequestBody @Valid RecruitmentRequestDto dto){
-        recruitmentService.createRecruitment(user_id, contest_id, dto);
-        return ResponseEntity.status(200).body(BaseResponse.success(null));
+    public ResponseEntity<BaseResponse<Long>> createRecruitment (@PathVariable(value = "contest-id")Long contest_id, @AuthenticationPrincipal String user_id, @RequestBody @Valid RecruitmentRequestDto dto){
+        Long apply_id = recruitmentService.createRecruitment(user_id, contest_id, dto);
+        return ResponseEntity.status(200).body(BaseResponse.success("200", "모집 공고가 생성되었습니다.", apply_id));
     }
 
     //삭제하기
@@ -59,8 +59,13 @@ public class RecruitmentController {
         return ResponseEntity.status(200).body(BaseResponse.success("200", "모집중인 모집공고 리스트", list));
     }
 
-    //공고 디테일한 정보 가져오기
 
+//    @GetMapping("/recruitlist")
+//    public ResponseEntity<BaseResponse<List<UserRecruitmentResponseDto>>> getUserRecruitments (){
+//
+//    }
+
+    //공고 디테일한 정보 가져오기
     @GetMapping("/detail/{recruit-id}")
     public ResponseEntity<BaseResponse<RecruitmentResponseDto>> getRecruitment(@PathVariable(value="recruit-id") Long recruit_id){
         RecruitmentResponseDto dto = recruitmentService.getRecruitment(recruit_id);

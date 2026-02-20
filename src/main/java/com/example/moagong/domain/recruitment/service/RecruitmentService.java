@@ -42,7 +42,7 @@ public class RecruitmentService {
     private final ContestRepository contestRepository;
 
     @Transactional
-    public void createRecruitment(String user_id, Long contest_id, RecruitmentRequestDto dto){
+    public Long createRecruitment(String user_id, Long contest_id, RecruitmentRequestDto dto){
         //1. user, contest 유효한지 검사하기
         User user = userRepository.findById(user_id).orElseThrow(() -> new CustomException(USER_NOT_FOUND));
         Contest contest = contestRepository.findById(contest_id).orElseThrow(() -> new CustomException(CONTEST_NOT_FOUND));
@@ -74,6 +74,7 @@ public class RecruitmentService {
                 .build();
 
         recruitmentApplyRepository.save(apply);
+        return recruitment.getId();
     }
 
     //삭제
